@@ -1,0 +1,6 @@
+# Ignore the articles folder
+articles/
+
+# Ignore the .gephi files
+initialGraph.gephi
+planetToPlanet.gephi
