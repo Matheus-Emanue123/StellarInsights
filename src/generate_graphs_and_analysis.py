@@ -10,7 +10,7 @@ def generate_lsh_hashes(data, num_hashes=10, seed=42):
     return (hashes > 0).astype(int)
 
 def main_with_earth_specific_graphs():
-    # data_file = r"C:\Users\hecla\OneDrive\Área de Trabalho\CEFET\3 periodo\AEDS\Trabalhos_AEDS\Aplicação de Grafos\databases\PS_2025.01.12_10.15.56.csv"
+    # data_file = r"C:\Users\hecla\OneDrive\Desktop\CEFET\3rd period\AEDS\Graph Application\databases\PS_2025.01.12_10.15.56.csv"
     data_file = "../databases/PS_2025.01.12_10.15.56.csv"
     
     comparison_columns = [
@@ -45,9 +45,9 @@ def main_with_earth_specific_graphs():
         "st_met": 0.01
     }
 
-    # Carregar dados completos para manter coluna planet_name, se existir
+    # Load complete data to keep the planet_name column, if it exists
     df = pd.read_csv(data_file, comment='#')
-    # Se a coluna planet_name existir, incluí-la nos dados
+    # If the planet_name column exists, include it in the data
     if "planet_name" in df.columns:
         columns_of_interest = comparison_columns + ["planet_name"]
     else:
@@ -55,7 +55,7 @@ def main_with_earth_specific_graphs():
 
     data = df[columns_of_interest].fillna(df[columns_of_interest].median())
 
-    # Adicionar Terra e "Similar Earth" com nomes
+    # Add Earth and "Similar Earth" with names
     earth_data = pd.DataFrame([earth_reference, similar_earth_reference], columns=comparison_columns)
     earth_data["planet_name"] = ["Earth", "Similar Earth"]
     data = pd.concat([data, earth_data], ignore_index=True)
@@ -67,20 +67,20 @@ def main_with_earth_specific_graphs():
     for col in comparison_columns:
         data_log[col] = np.log(data_log[col] + 1)
 
-    print("\n--- Gerando Hashes LSH ---")
+    print("\n--- Generating LSH Hashes ---")
     hashes = generate_lsh_hashes(data_log[comparison_columns], num_hashes=num_hashes)
     hashes_df = pd.DataFrame(hashes, columns=[f"hash_{i}" for i in range(num_hashes)])
 
     similarity_buckets = hashes_df.groupby(list(hashes_df.columns)).indices
     grouped_planets = {bucket: list(planets) for bucket, planets in similarity_buckets.items()}
 
-    # Filtrar grupos que contenham a Terra
+    # Filter groups that contain Earth
     groups_with_earth = [
         (bucket, planets) for bucket, planets in grouped_planets.items()
         if earth_index in planets
     ]
 
-    # Gerar grafos apenas para esses grupos
+    # Generate graphs only for these groups
     for bucket, planets in groups_with_earth:
         print(f"Generating Earth-connected graph for bucket {bucket} with planets {planets}")
         group_data = data.iloc[planets].copy()
