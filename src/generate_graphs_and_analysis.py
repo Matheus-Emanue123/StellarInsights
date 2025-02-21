@@ -17,7 +17,7 @@ def generate_lsh_hashes(data, num_hashes=10, seed=42):
     return (hashes > 0).astype(int)
 
 def main_with_earth_specific_graphs():
-    # data_file = r"C:\Users\hecla\OneDrive\Desktop\CEFET\3rd period\AEDS\Graph Application\databases\PS_2025.01.12_10.15.56.csv"
+    # data_file = r"C:\Users\hecla\OneDrive\Área de Trabalho\CEFET\3 periodo\AEDS\Trabalhos_AEDS\Aplicação de Grafos\databases\PS_2025.01.12_10.15.56.csv"
     data_file = "../databases/PS_2025.01.12_10.15.56.csv"
     
     comparison_columns = [
@@ -52,9 +52,8 @@ def main_with_earth_specific_graphs():
         "st_met": 0.01
     }
 
-    # Load complete data to keep the planet_name column, if it exists
+    # Carregar dados completos para manter coluna planet_name, se existir
     df = pd.read_csv(data_file, comment='#')
-    # If the planet_name column exists, include it in the data
     if "planet_name" in df.columns:
         columns_of_interest = comparison_columns + ["planet_name"]
     else:
@@ -62,7 +61,7 @@ def main_with_earth_specific_graphs():
 
     data = df[columns_of_interest].fillna(df[columns_of_interest].median())
 
-    # Add Earth and "Similar Earth" with names
+    # Adicionar Terra e "Similar Earth" com nomes
     earth_data = pd.DataFrame([earth_reference, similar_earth_reference], columns=comparison_columns)
     earth_data["planet_name"] = ["Earth", "Similar Earth"]
     data = pd.concat([data, earth_data], ignore_index=True)
@@ -75,7 +74,9 @@ def main_with_earth_specific_graphs():
     for col in comparison_columns:
         data_log[col] = np.log(data_log[col] + 1)
 
+    # --------------------- LSH ---------------------
     print("\n--- Gerando Hashes LSH ---")
+    start_lsh = time.time()
     hashes = generate_lsh_hashes(data_log[comparison_columns], num_hashes=num_hashes)
     lsh_time = time.time() - start_lsh
 
@@ -83,13 +84,72 @@ def main_with_earth_specific_graphs():
     similarity_buckets = hashes_df.groupby(list(hashes_df.columns)).indices
     grouped_planets = {bucket: list(planets) for bucket, planets in similarity_buckets.items()}
 
-    # Filtrar grupos que contenham a Terra
+    # Criar rótulos para cada ponto com base no bucket do LSH
+    unique_buckets = {bucket: idx for idx, bucket in enumerate(grouped_planets.keys())}
+    lsh_labels = np.empty(data.shape[0], dtype=int)
+    for bucket, indices in grouped_planets.items():
+        cluster_id = unique_buckets[bucket]
+        for i in indices:
+            lsh_labels[i] = cluster_id
+
+    # Filtrar grupos que contenham a Terra para geração dos grafos
     groups_with_earth = [
         (bucket, planets) for bucket, planets in grouped_planets.items()
         if earth_index in planets
     ]
 
-    # Gerar grafos apenas para esses grupos
+    # --------------------- K-means ---------------------
+    print("\n--- Aplicando K-means ---")
+    start_kmeans = time.time()
+    # Definindo um número fixo de clusters (por exemplo, 5)
+    kmeans = KMeans(n_clusters=5, random_state=42)
+    kmeans_labels = kmeans.fit_predict(data_log[comparison_columns])
+    kmeans_time = time.time() - start_kmeans
+
+    # --------------------- KNN (agrupamento via grafo) ---------------------
+    print("\n--- Agrupamento via KNN ---")
+    start_knn = time.time()
+    # Utilizando os 5 vizinhos mais próximos
+    knn = NearestNeighbors(n_neighbors=5)
+    knn.fit(data_log[comparison_columns])
+    distances, indices = knn.kneighbors(data_log[comparison_columns])
+    
+    # Construir grafo onde cada ponto se conecta aos seus vizinhos
+    G = nx.Graph()
+    n_points = data_log.shape[0]
+    G.add_nodes_from(range(n_points))
+    for i, neighbors in enumerate(indices):
+        for neighbor in neighbors:
+            if i != neighbor:
+                G.add_edge(i, neighbor)
+    
+    # Extrair componentes conexas como clusters
+    knn_labels = np.empty(n_points, dtype=int)
+    for cluster_id, component in enumerate(nx.connected_components(G)):
+        for node in component:
+            knn_labels[node] = cluster_id
+    knn_time = time.time() - start_knn
+
+    # --------------------- Comparação dos Agrupamentos ---------------------
+    # Utilizando o Adjusted Rand Index (ARI)
+    ari_lsh_kmeans = adjusted_rand_score(lsh_labels, kmeans_labels)
+    ari_lsh_knn = adjusted_rand_score(lsh_labels, knn_labels)
+    ari_kmeans_knn = adjusted_rand_score(kmeans_labels, knn_labels)
+
+    # Gerar arquivo com benchmarking e similaridade
+    with open("clustering_comparison.txt", "w") as f:
+        f.write("Benchmarking de Métodos de Agrupamento:\n")
+        f.write(f"LSH: {lsh_time:.4f} segundos\n")
+        f.write(f"K-means: {kmeans_time:.4f} segundos\n")
+        f.write(f"KNN (via grafo de vizinhos): {knn_time:.4f} segundos\n\n")
+        f.write("Similaridade entre agrupamentos (Adjusted Rand Index):\n")
+        f.write(f"LSH vs K-means: {ari_lsh_kmeans:.4f}\n")
+        f.write(f"LSH vs KNN: {ari_lsh_knn:.4f}\n")
+        f.write(f"K-means vs KNN: {ari_kmeans_knn:.4f}\n")
+    
+    print("\nComparação de agrupamentos gerada em 'clustering_comparison.txt'.")
+
+    # --------------------- Geração de Grafos para Grupos com a Terra (LSH) ---------------------
     for bucket, planets in groups_with_earth:
         print(f"\nGerando grafo conectado à Terra para o bucket {bucket} com planetas {planets}")
         group_data = data.iloc[planets].copy()
