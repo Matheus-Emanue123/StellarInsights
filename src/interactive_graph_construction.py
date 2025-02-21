@@ -4,6 +4,7 @@ import pandas as pd
 from pyvis.network import Network
 import webbrowser
 import os
+
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
@@ -116,7 +117,7 @@ def export_graph_to_csv(G, nodes_path="nodes.csv", edges_path="edges.csv"):
 def construct_graph_planet_to_planet(data, comparison_columns, output_html="graph_planet_to_planet.html"):
     G = nx.Graph()
 
-    # Criar nós
+    # Create nodes
     for i, row in data.iterrows():
         color = map_density_to_color(row.get("pl_dens", 0))  
         size = max(5, row.get("st_mass", 1.0) * 10)
@@ -129,11 +130,11 @@ def construct_graph_planet_to_planet(data, comparison_columns, output_html="grap
         })
         G.add_node(i, **node_data)
 
-    # Calcular todas as distâncias para definir um threshold dinâmico
+    # Calculate all distances to define a dynamic threshold
     distances = []
     for i in data.index:
         for j in data.index:
-            if i < j:  # Evitar cálculos repetidos
+            if i < j:  # Avoid redundant calculations
                 distance = np.linalg.norm(
                     data.loc[i, comparison_columns].values - 
                     data.loc[j, comparison_columns].values
@@ -143,11 +144,11 @@ def construct_graph_planet_to_planet(data, comparison_columns, output_html="grap
     mean_distance = np.mean(distances)
     std_distance = np.std(distances)
     
-    dynamic_threshold = mean_distance - 0.75 * std_distance  # Ajustável conforme necessário
+    dynamic_threshold = mean_distance - 0.75 * std_distance  # Adjustable as needed
 
-    print(f"Threshold dinâmico definido: {dynamic_threshold}")
+    print(f"Dynamic threshold defined: {dynamic_threshold}")
 
-    # Criar arestas com base no threshold dinâmico
+    # Create edges based on the dynamic threshold
     for i in data.index:
         for j in data.index:
             if i < j:  
@@ -160,15 +161,15 @@ def construct_graph_planet_to_planet(data, comparison_columns, output_html="grap
                 planet_i = str(data.loc[i, "planet_name"]) if "planet_name" in data.columns else f"Planet {i}"
                 planet_j = str(data.loc[j, "planet_name"]) if "planet_name" in data.columns else f"Planet {j}"
 
-# Conectar se a distância for menor que o threshold dinâmico OU se for a Terra ou Similar Earth
+                # Connect if the distance is less than the dynamic threshold or if it's Earth or Similar Earth
                 if distance <= dynamic_threshold or "Earth" in planet_i or "Similar Earth" in planet_j:
                     G.add_edge(i, j, weight=similarity, distance=round(distance, 2))
 
 
-    # Exportar para CSV (Gephi)
+    # Export to CSV (Gephi)
     export_graph_to_csv(G, "nodes_planet_to_planet.csv", "edges_planet_to_planet.csv")
 
-    # Visualizar com PyVis
+    # Visualize with PyVis
     net = Network(height="750px", width="100%", bgcolor="white", font_color="black")
     net.force_atlas_2based(gravity=-50)  
 
@@ -195,5 +196,3 @@ def construct_graph_planet_to_planet(data, comparison_columns, output_html="grap
     webbrowser.open(f"file://{os.path.abspath(output_html)}")
 
     return G
-
-    

@@ -1,14 +1,14 @@
 # Import required libraries
+
 import pandas as pd
-import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import ttest_ind
+import matplotlib.pyplot as plt
 
 # Function: Load dataset
 def load_data(file_path, earth_like_indices):
     # Load the dataset, skipping comments
     data = pd.read_csv("../databases/PS_2025.01.12_10.15.56.csv", comment='#', low_memory=False)
-    # data = pd.read_csv(r"C:\Users\hecla\OneDrive\Área de Trabalho\CEFET\3 periodo\AEDS\Trabalhos_AEDS\Aplicação de Grafos\databases\PS_2025.01.12_10.15.56.csv", comment='#', low_memory=False)
     
     # Separate Earth-like planets
     valid_indices = [idx for idx in earth_like_indices if idx in data.index]
@@ -166,7 +166,6 @@ def combined_analysis_with_outliers(earth_like, all_other_stars, outliers):
 # Main function to call analyses
 def main():
     # Path to your dataset
-    # file_path = r"C:\Users\hecla\OneDrive\Área de Trabalho\CEFET\3 periodo\AEDS\Trabalhos_AEDS\Aplicação de Grafos\databases\PS_2025.01.12_10.15.56.csv"
     file_path = "../databases/PS_2025.01.12_10.15.56.csv"
     # Indices of Earth-like planets
     earth_like_indices = [596, 708, 1697, 1918, 2406, 2667, 3726, 3843, 5858, 5859, 5862, 5864, 5871, 5873, 5877, 6221, 6224, 6227, 6228, 6332, 6333, 6342, 6346, 6348, 7145, 7148, 7149, 7988, 7989, 7992, 7994, 8253, 8451, 8453, 8454, 8455, 8456, 8723, 8725, 11039, 11041, 11044, 11045, 13653, 13707, 13711, 13712, 13897, 13899, 13901, 13919, 13920, 13922, 13923, 14071, 14144, 14147, 14149, 14164, 14165, 14167, 14178, 14179, 14183, 14184, 14627, 14708, 14712, 14713, 14988, 14990, 15038, 15039, 15048, 15057, 15061, 15068, 15070, 15073, 15078, 15080, 15081, 15089, 15092, 15278, 15347, 15469, 15471, 15472, 15473, 15476, 15724, 15728, 15729, 15730, 15867, 15869, 15870, 16265, 16328, 16329, 16330, 16384, 16385, 16388, 17673, 17676, 17682, 17747, 17748, 17751, 17755, 18929, 18931, 19859, 19861, 19863, 19865, 19866, 23107, 23294, 23298, 23299, 23303, 26302, 26305, 26308, 26564, 26567, 26574, 26600, 26607, 26608, 26612, 26834, 26837, 26838, 27622, 28330, 28332, 28334, 28337, 28339, 29387, 29388, 29392, 29394, 29396, 29397, 30302, 30303, 30304, 30308, 30311, 30544, 30545, 30546, 30548, 32466, 32738, 32740, 32744, 35048, 35055, 35056, 35057, 35167, 35747, 35977, 36078, 37823, 38047, 38048]
@@ -174,13 +173,13 @@ def main():
     # Load data
     data, earth_like, all_other_stars = load_data(file_path, earth_like_indices)
 
-    # Analyze metallicity
+    # Analyze metallicity29392, 29394, 29396, 29397, 30302, 30303, 30304, 30308, 30311, 30544, 30545, 30546, 30548, 32466, 32738, 32740, 32744, 35048, 35055, 35056, 35057, 35167, 35747, 35977, 36078, 37823, 38047, 38048]
     analyze_metallicity(earth_like, all_other_stars)
 
     # Analyze stellar mass
     analyze_stellar_mass(earth_like, all_other_stars)
 
-      # Identify and print outliers
+    # Identify and print outliers
     outliers = identify_outliers(earth_like, all_other_stars)
 
     # Combined analysis with annotations and solar lines
