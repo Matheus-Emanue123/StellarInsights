@@ -1,0 +1,9 @@
+Análise de Relação Não Linear entre Massa Estelar e Densidade Planetária (Earth-like):
+Pearson correlation: -0.1665 (p-value: 5.0913e-01)
+Spearman correlation: -0.1718 (p-value: 4.9535e-01)
+Kendall correlation: -0.1063 (p-value: 5.4284e-01)
+Regressão Polinomial (grau 2): R² = 0.0406
+Regressão Polinomial (grau 3): R² = 0.2171
+LOESS: correlação entre valores observados e ajustados = -0.4122
+Correlação de distância: 0.4119
+Informação Mútua: 0.0010
