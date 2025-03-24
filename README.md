@@ -2,7 +2,7 @@
  
  ## 📄 Research Paper
  This project is based on the research article:  
- [Investigating Stellar Composition and Mass as Indicators of Earth-like Exoplanets: Findings from Graph Examination](https://github.com/Matheus-Emanue123/StellarInsights/blob/main/artigo/Investigating_Stellar_Composition_and_Mass_as_Indicators_of_Earth_like_Exoplanets__Findings_from_Graph_Examination.pdf)
+ [ A Graph Driven Approach to Complex Challenges A Case Study on Multiobjective Stellar and Earth Like Exoplanet Clustering](https://github.com/Matheus-Emanue123/StellarInsights/blob/main/artigo/A_Graph_Driven_Approach_to_Complex_Challenges__A_Case_Study_on_Multiobjective_Stellar_and_Earth_Like_Exoplanet_Clustering.pdf)
  
  ## 📌 Overview
  This repository contains code for analyzing stellar metallicity and mass in relation to Earth-like exoplanets using graph-based methods. It includes:
