@@ -1,7 +1,7 @@
 # Stellar Insights: Investigating Stellar Composition and Mass as Indicators of Earth-like Exoplanets
  
  ## 📄 Research Paper
- This project is based on the research article:  
+ This repository contains the code and data used for this work:  
  [ A Graph Driven Approach to Complex Challenges A Case Study on Multiobjective Stellar and Earth Like Exoplanet Clustering](https://github.com/Matheus-Emanue123/StellarInsights/blob/main/artigo/A_Graph_Driven_Approach_to_Complex_Challenges__A_Case_Study_on_Multiobjective_Stellar_and_Earth_Like_Exoplanet_Clustering.pdf)
  
  ## 📌 Overview
