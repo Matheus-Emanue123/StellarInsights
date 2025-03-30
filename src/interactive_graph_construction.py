@@ -7,6 +7,16 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
+# Configuração dos diretórios de saída
+BASE_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '..', 'outputs')
+TXT_OUTPUT_DIR = os.path.join(BASE_OUTPUT_DIR, 'txt')
+CSV_OUTPUT_DIR = os.path.join(BASE_OUTPUT_DIR, 'csv')
+HTML_OUTPUT_DIR = os.path.join(BASE_OUTPUT_DIR, 'html')
+
+for directory in [TXT_OUTPUT_DIR, CSV_OUTPUT_DIR, HTML_OUTPUT_DIR]:
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
 def map_density_to_color(density):
     """Map planet density to a color gradient from blue to red."""
     norm = plt.Normalize(vmin=0, vmax=10)  # Adjust range if needed
@@ -15,7 +25,45 @@ def map_density_to_color(density):
     hex_color = mcolors.to_hex(rgba_color)
     return hex_color
 
-def construct_graph_interactive_earth_edges(data, comparison_columns, earth_name, output_html="graph.html"):
+def export_graph_to_csv(G, nodes_path=None, edges_path=None):
+    if nodes_path is None:
+        nodes_path = os.path.join(CSV_OUTPUT_DIR, "nodes.csv")
+    if edges_path is None:
+        edges_path = os.path.join(CSV_OUTPUT_DIR, "edges.csv")
+    # Store all node attributes
+    nodes_data = []
+    
+    all_columns = set()
+    for _, data in G.nodes(data=True):
+        all_columns.update(data.keys())
+
+    for node, data in G.nodes(data=True):
+        node_info = {"id": node}
+        for col in all_columns:
+            node_info[col] = data.get(col, "N/A")  
+        nodes_data.append(node_info)
+
+    df_nodes = pd.DataFrame(nodes_data)
+    df_nodes.to_csv(nodes_path, index=False, encoding="utf-8")
+
+    # Store edges
+    edges_data = []
+    for source, target, data in G.edges(data=True):
+        edges_data.append({
+            "source": source,
+            "target": target,
+            "weight": data.get("weight", 1.0),
+            "distance": data.get("distance", 1.0)
+        })
+    
+    df_edges = pd.DataFrame(edges_data)
+    df_edges.to_csv(edges_path, index=False, encoding="utf-8")
+
+    print(f"Files exported: {nodes_path}, {edges_path}")
+
+def construct_graph_interactive_earth_edges(data, comparison_columns, earth_name, output_html=None):
+    if output_html is None:
+        output_html = os.path.join(HTML_OUTPUT_DIR, "graph.html")
     G = nx.Graph()
 
     # Create nodes with updated colors and sizes
@@ -51,7 +99,9 @@ def construct_graph_interactive_earth_edges(data, comparison_columns, earth_name
                 )
 
     # Export Graph for Gephi
-    export_graph_to_csv(G, "nodes.csv", "edges.csv")
+    export_graph_to_csv(G, 
+                        nodes_path=os.path.join(CSV_OUTPUT_DIR, "nodes.csv"), 
+                        edges_path=os.path.join(CSV_OUTPUT_DIR, "edges.csv"))
 
     # 📌 Updated PyVis Visualization
     net = Network(height="750px", width="100%", bgcolor="white", font_color="black")
@@ -81,39 +131,9 @@ def construct_graph_interactive_earth_edges(data, comparison_columns, earth_name
 
     return G
 
-def export_graph_to_csv(G, nodes_path="nodes.csv", edges_path="edges.csv"):
-    # Store all node attributes
-    nodes_data = []
-    
-    all_columns = set()
-    for _, data in G.nodes(data=True):
-        all_columns.update(data.keys())
-
-    for node, data in G.nodes(data=True):
-        node_info = {"id": node}
-        for col in all_columns:
-            node_info[col] = data.get(col, "N/A")  
-        nodes_data.append(node_info)
-
-    df_nodes = pd.DataFrame(nodes_data)
-    df_nodes.to_csv(nodes_path, index=False, encoding="utf-8")
-
-    # Store edges
-    edges_data = []
-    for source, target, data in G.edges(data=True):
-        edges_data.append({
-            "source": source,
-            "target": target,
-            "weight": data.get("weight", 1.0),
-            "distance": data.get("distance", 1.0)
-        })
-    
-    df_edges = pd.DataFrame(edges_data)
-    df_edges.to_csv(edges_path, index=False, encoding="utf-8")
-
-    print(f"Files exported: {nodes_path}, {edges_path}")
-
-def construct_graph_planet_to_planet(data, comparison_columns, output_html="graph_planet_to_planet.html"):
+def construct_graph_planet_to_planet(data, comparison_columns, output_html=None):
+    if output_html is None:
+        output_html = os.path.join(HTML_OUTPUT_DIR, "graph_planet_to_planet.html")
     G = nx.Graph()
 
     # Criar nós
@@ -160,13 +180,14 @@ def construct_graph_planet_to_planet(data, comparison_columns, output_html="grap
                 planet_i = str(data.loc[i, "planet_name"]) if "planet_name" in data.columns else f"Planet {i}"
                 planet_j = str(data.loc[j, "planet_name"]) if "planet_name" in data.columns else f"Planet {j}"
 
-# Conectar se a distância for menor que o threshold dinâmico OU se for a Terra ou Similar Earth
+                # Conectar se a distância for menor que o threshold dinâmico OU se for a Terra ou Similar Earth
                 if distance <= dynamic_threshold or "Earth" in planet_i or "Similar Earth" in planet_j:
                     G.add_edge(i, j, weight=similarity, distance=round(distance, 2))
 
-
     # Exportar para CSV (Gephi)
-    export_graph_to_csv(G, "nodes_planet_to_planet.csv", "edges_planet_to_planet.csv")
+    export_graph_to_csv(G, 
+                        nodes_path=os.path.join(CSV_OUTPUT_DIR, "nodes_planet_to_planet.csv"), 
+                        edges_path=os.path.join(CSV_OUTPUT_DIR, "edges_planet_to_planet.csv"))
 
     # Visualizar com PyVis
     net = Network(height="750px", width="100%", bgcolor="white", font_color="black")
@@ -195,5 +216,3 @@ def construct_graph_planet_to_planet(data, comparison_columns, output_html="grap
     webbrowser.open(f"file://{os.path.abspath(output_html)}")
 
     return G
-
-    

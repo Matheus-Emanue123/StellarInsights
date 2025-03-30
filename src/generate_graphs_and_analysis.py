@@ -2,12 +2,21 @@ import numpy as np
 import pandas as pd
 import time
 from interactive_graph_construction import construct_graph_interactive_earth_edges, construct_graph_planet_to_planet
-
-# Importações para os novos algoritmos e comparação
 from sklearn.cluster import KMeans
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics import adjusted_rand_score
 import networkx as nx
+import os
+
+# Configuração dos diretórios de saída
+BASE_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '..', 'outputs')
+TXT_OUTPUT_DIR = os.path.join(BASE_OUTPUT_DIR, 'txt')
+CSV_OUTPUT_DIR = os.path.join(BASE_OUTPUT_DIR, 'csv')
+HTML_OUTPUT_DIR = os.path.join(BASE_OUTPUT_DIR, 'html')
+
+for directory in [TXT_OUTPUT_DIR, CSV_OUTPUT_DIR, HTML_OUTPUT_DIR]:
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 def generate_lsh_hashes(data, num_hashes=10, seed=42):
     np.random.seed(seed)
@@ -130,6 +139,7 @@ def main_with_earth_specific_graphs():
 
         # KNN (agrupamento via grafo)
         start_knn = time.time()
+        from sklearn.neighbors import NearestNeighbors
         knn = NearestNeighbors(n_neighbors=10)
         knn.fit(data_log[comparison_columns])
         distances, indices = knn.kneighbors(data_log[comparison_columns])
@@ -165,7 +175,8 @@ def main_with_earth_specific_graphs():
     avg_ari_kmeans_knn = np.mean(ari_kmeans_knn_list)
 
     # Gravação dos resultados no arquivo TXT
-    with open("clustering_comparison.txt", "w") as f:
+    clustering_txt_path = os.path.join(TXT_OUTPUT_DIR, "clustering_comparison.txt")
+    with open(clustering_txt_path, "w") as f:
         f.write("Benchmarking de Métodos de Agrupamento (média de 10 execuções):\n")
         f.write(f"LSH: {avg_lsh_time:.4f} segundos\n")
         f.write(f"K-means: {avg_kmeans_time:.4f} segundos\n")
@@ -175,7 +186,7 @@ def main_with_earth_specific_graphs():
         f.write(f"LSH vs KNN: {avg_ari_lsh_knn:.4f}\n")
         f.write(f"K-means vs KNN: {avg_ari_kmeans_knn:.4f}\n")
     
-    print("\nBenchmarking realizado e resultados salvos em 'clustering_comparison.txt'.")
+    print(f"\nBenchmarking realizado e resultados salvos em '{clustering_txt_path}'.")
 
     # --------------------- Geração de Grafos para Grupos com a Terra ---------------------
     # Utiliza-se o agrupamento LSH da última execução (determinístico devido à semente)
@@ -196,7 +207,7 @@ def main_with_earth_specific_graphs():
             group_data["planet_name"] = group_data["pl_name"]
 
         print(f"\nGerando grafo conectado à Terra para o bucket {bucket} com planetas {planet_names}")
-        output_file = f"graph_group_with_earth_{bucket}.html"
+        output_file = os.path.join(HTML_OUTPUT_DIR, f"graph_group_with_earth_{bucket}.html")
 
         construct_graph_interactive_earth_edges(
             group_data,
@@ -206,7 +217,7 @@ def main_with_earth_specific_graphs():
         )
 
         print(f"Gerando grafo de conexões entre planetas para o bucket {bucket}")
-        output_file_planet_graph = f"planet_graph_group_{bucket}.html"  
+        output_file_planet_graph = os.path.join(HTML_OUTPUT_DIR, f"planet_graph_group_{bucket}.html")  
         construct_graph_planet_to_planet(
             group_data,
             comparison_columns,

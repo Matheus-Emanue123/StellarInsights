@@ -1,7 +1,7 @@
 Benchmarking de Métodos de Agrupamento (média de 10 execuções):
-LSH: 0.0067 segundos
-K-means: 0.0410 segundos
-KNN (via grafo de vizinhos): 2.0243 segundos
+LSH: 0.0102 segundos
+K-means: 0.0684 segundos
+KNN (via grafo de vizinhos): 2.7985 segundos
 
 Média da Similaridade entre agrupamentos (Adjusted Rand Index):
 LSH vs K-means: 0.5067

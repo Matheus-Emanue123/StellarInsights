@@ -4,6 +4,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import f_oneway, ttest_ind
+import os
+
+# Configuração dos diretórios de saída
+BASE_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '..', 'outputs')
+TXT_OUTPUT_DIR = os.path.join(BASE_OUTPUT_DIR, 'txt')
+CSV_OUTPUT_DIR = os.path.join(BASE_OUTPUT_DIR, 'csv')
+HTML_OUTPUT_DIR = os.path.join(BASE_OUTPUT_DIR, 'html')
+
+for directory in [TXT_OUTPUT_DIR, CSV_OUTPUT_DIR, HTML_OUTPUT_DIR]:
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 def main():
     # 1. Define o caminho para o arquivo Excel

@@ -9,6 +9,17 @@ from statsmodels.nonparametric.smoothers_lowess import lowess
 import dcor  # Certifique-se de instalar: pip install dcor
 from sklearn.feature_selection import mutual_info_regression
 import numpy as np
+import os
+
+# Configuração dos diretórios de saída
+BASE_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '..', 'outputs')
+TXT_OUTPUT_DIR = os.path.join(BASE_OUTPUT_DIR, 'txt')
+CSV_OUTPUT_DIR = os.path.join(BASE_OUTPUT_DIR, 'csv')
+HTML_OUTPUT_DIR = os.path.join(BASE_OUTPUT_DIR, 'html')
+
+for directory in [TXT_OUTPUT_DIR, CSV_OUTPUT_DIR, HTML_OUTPUT_DIR]:
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 # Função: Carregar dataset usando nomes dos planetas ao invés de índices
 def load_data(file_path, earth_like_names):
@@ -262,7 +273,7 @@ def main():
     # Agora, as correlações serão feitas apenas para os Earth-like
     analyze_mass_density_correlation(earth_like)
     
-    nonlinear_output_file = "nonlinear_analysis.txt"
+    nonlinear_output_file = os.path.join(TXT_OUTPUT_DIR, "nonlinear_analysis.txt")
     analyze_nonlinear_relationship(earth_like, nonlinear_output_file)
 
 if __name__ == "__main__":
