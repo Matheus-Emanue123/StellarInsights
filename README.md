@@ -59,7 +59,8 @@
  
  ## 🔗 Outputs
  - Interactive Graphs (`.html` files)
- - Statistical Analysis (`.csv` results)
+ - Sub-databases for Gephi (`.csv` files)
+ - Statistical Analysis (`.txt` files)
  - Clustered Data Visualizations
  
  Feel free to explore and contribute! 🚀
